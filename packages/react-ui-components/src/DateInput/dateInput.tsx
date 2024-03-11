@@ -54,6 +54,11 @@ export interface DateInputProps {
     readonly timeOnly?: boolean;
 
     /**
+     * Show the Time in 24 hours or 12 hours format
+     */
+    readonly is24Hour?: boolean;
+
+    /**
      * Add some constraints to the timepicker.
      * It accepts an object with the format { hours: { min: 9, max: 15, step: 2 }},
      * this example means the hours can't be lower than 9 and higher than 15,
@@ -98,7 +103,7 @@ interface DateInputTheme {
 }
 
 const defaultProps: PickDefaultProps<DateInputProps, 'labelFormat' | 'timeConstraints'> = {
-    labelFormat: 'DD-MM-YYYY hh:mm',
+    labelFormat: 'DD-MM-YYYY hh:mm A',
     timeConstraints: {
         minutes: {
             min: 0,
@@ -133,6 +138,7 @@ export class DateInput extends PureComponent<DateInputProps, DateInputState> {
             labelFormat,
             dateOnly,
             timeOnly,
+            is24Hour,
             locale,
             disabled
         } = this.props;
@@ -167,6 +173,15 @@ export class DateInput extends PureComponent<DateInputProps, DateInputState> {
                 [theme!['disabled-cursor']]: disabled
             },
         );
+
+        const getTimeFormat = () => {
+            if (dateOnly) {
+                return false
+            }
+
+            console.log('getTimeFormat', is24Hour);
+            return is24Hour ? 'HH:m' : 'hh:m A'
+        }
 
         return (
             <div className={wrapper}>
@@ -213,7 +228,7 @@ export class DateInput extends PureComponent<DateInputProps, DateInputState> {
                         dateFormat={!timeOnly}
                         utc={dateOnly}
                         locale={locale}
-                        timeFormat={!dateOnly}
+                        timeFormat={getTimeFormat()}
                         onChange={this.handleChange}
 
                         timeConstraints={this.props.timeConstraints}
