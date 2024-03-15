@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {SelectBox, MultiSelectBox} from '@neos-project/react-ui-components';
 import {neos} from '@neos-project/neos-ui-decorators';
 import {shouldDisplaySearchBox, searchOptions, processSelectBoxOptions} from './SelectBoxHelpers';
+import {getInvalidValue} from './helper'
 
 @neos(globalRegistry => ({
     i18nRegistry: globalRegistry.get('i18n')
@@ -48,7 +49,7 @@ export default class SimpleSelectBoxEditor extends PureComponent {
     };
 
     render() {
-        const {commit, value, i18nRegistry, className} = this.props;
+        const {commit, i18nRegistry, className, value} = this.props;
         const options = Object.assign({}, this.constructor.defaultOptions, this.props.options);
 
         const processedSelectBoxOptions = processSelectBoxOptions(i18nRegistry, options.values);
@@ -57,12 +58,17 @@ export default class SimpleSelectBoxEditor extends PureComponent {
 
         // Placeholder text must be unescaped in case html entities were used
         const placeholder = options && options.placeholder && i18nRegistry.translate(unescape(options.placeholder));
+        const invalidValue = getInvalidValue(value, options.values, i18nRegistry)
+        const invalidValueOption = invalidValue?.value ?
+            invalidValue.options : []
+
+        console.log(invalidValue?.value, value);
 
         if (options.multiple) {
             return (<MultiSelectBox
                 className={className}
-                options={processedSelectBoxOptions}
-                values={value || []}
+                options={[...processedSelectBoxOptions, ...invalidValueOption]}
+                values={invalidValue?.value || value}
                 onValuesChange={commit}
                 placeholder={placeholder}
                 allowEmpty={allowEmpty}
@@ -78,8 +84,8 @@ export default class SimpleSelectBoxEditor extends PureComponent {
 
         // Multiple == FALSE
         return (<SelectBox
-            options={this.state.searchTerm ? searchOptions(this.state.searchTerm, processedSelectBoxOptions) : processedSelectBoxOptions}
-            value={value}
+            options={[...(this.state.searchTerm ? searchOptions(this.state.searchTerm, processedSelectBoxOptions) : processedSelectBoxOptions), ...invalidValueOption]}
+            value={invalidValue?.value || value}
             className={className}
             onValueChange={commit}
             placeholder={placeholder}
